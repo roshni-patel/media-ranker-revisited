@@ -33,18 +33,18 @@
           <%= link_to "View all users", users_path, class: "nav-link" %>
         </li>
       </ul>
-      <ul class="nav app-header__user-nav-container">
-        <% if @login_user %>
+<!--      <ul class="nav app-header__user-nav-container">-->
+        <%# if @login_user %>
 
-        <li class="nav-item app-header__nav_item">
-          <%= link_to "Logged in as #{@login_user.username}", user_path(@login_user), class: "btn btn-primary" %>
-        </li>
-        <li class="nav-item app-header__nav_item">
-          <%= link_to "Log Out", logout_path, method: :post, class: "btn btn-primary" %>
-        </li>
+<!--        <li class="nav-item app-header__nav_item">-->
+          <%#= link_to "Logged in as #{@login_user.username}", user_path(@login_user), class: "btn btn-primary" %>
+<!--        </li>-->
+<!--        <li class="nav-item app-header__nav_item">-->
+          <%#= link_to "Log Out", logout_path, method: :post, class: "btn btn-primary" %>
+<!--        </li>-->
 
-        <% else %>
-
+        <%# else %>
+        <ul>
         <li class="nav-item app-header__nav_item">
           <% if session[:user_id] %>
             <%= link_to "Log out", logout_path, method: "delete" %>
@@ -52,7 +52,7 @@
             <%= link_to "Login with GitHub", github_login_path, class: "btn btn-primary" %>
           <% end %>
         </li>
-        <% end %>
+        <%# end %>
 
       </ul>
     </nav>
