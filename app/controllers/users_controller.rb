@@ -32,15 +32,19 @@ class UsersController < ApplicationController
         return redirect_to root_path
       end
     end
-
     # If we get here, we have a valid user instance
     session[:user_id] = user.id
     return redirect_to root_path
   end
 
   def destroy
-    session[:user_id] = nil
-    flash[:success] = "Successfully logged out!"
+    # needed to add this first part to make last test pass
+    if session[:user_id].nil?
+      flash[:warning] = "You were not logged in!"
+    else
+      session[:user_id] = nil
+      flash[:success] = "Successfully logged out!"
+    end
 
     redirect_to root_path
   end
