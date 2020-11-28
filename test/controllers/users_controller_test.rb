@@ -12,7 +12,6 @@ describe UsersController do
 
       must_redirect_to root_path
       expect(session[:user_id]).must_equal user.id
-      # expect(flash[:notice]).must_equal "Logged in as returning user #{user.username}"
       expect(flash[:success]).must_equal "Logged in as returning user #{user.username}"
     end
 
@@ -24,11 +23,8 @@ describe UsersController do
       }.must_differ "User.count", 1
 
       must_redirect_to root_path
-      expect(session[:user_id]).must_equal(User.find_by(provider: user.provider,
-        uid: user.uid, email: user.email).id)
-        # expect(flash[:notice]).must_equal "Logged in as new user #{user.username}"
-        expect(flash[:success]).must_equal "Logged in as new user #{user.username}"
-
+      expect(session[:user_id]).must_equal(User.find_by(provider: user.provider, uid: user.uid, email: user.email).id)
+      expect(flash[:success]).must_equal "Logged in as new user #{user.username}"
     end
 
     it "will handle a request with invalid information" do
@@ -49,8 +45,6 @@ describe UsersController do
 
       # expect(flash[:error]).must_equal "Could not create new user account: #{user.errors.messages}"
       expect(flash[:error]).must_equal "Could not create new user account: {:username=>[\"can't be blank\"]}"
-
-      # expect(session[:user_id]).must_equal nil
       expect(session[:user_id]).must_be_nil
     end
   end
@@ -60,22 +54,17 @@ describe UsersController do
       user = users(:dan)
       perform_login(user)
 
-      # post logout_path
       delete logout_path
 
       must_redirect_to root_path
-      # expect(session[:user_id]).must_equal nil
       expect(session[:user_id]).must_be_nil
-      # expect(flash[:notice]).must_equal "Successfully logged out"
       expect(flash[:success]).must_equal "Successfully logged out!"
     end
 
     it "will redirect back and give a flash notice if a guest user tries to logout" do
-      # post logout_path
       delete logout_path
 
       must_redirect_to root_path
-      # expect(session[:user_id]).must_equal nil
       expect(session[:user_id]).must_be_nil
       expect(flash[:warning]).must_equal "You were not logged in!"
     end

@@ -203,7 +203,7 @@ describe WorksController do
       delete logout_path
 
       must_respond_with :redirect
-      must_redirect_to root_path # had to use root path instead
+      must_redirect_to root_path # Had to use root path instead
     end
 
     it "succeeds for a logged-in user and a fresh user-vote pair" do
