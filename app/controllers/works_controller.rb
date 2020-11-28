@@ -2,6 +2,7 @@ class WorksController < ApplicationController
   # We should always be able to tell what category
   # of work we're dealing with
   before_action :category_from_work, except: [:root, :index, :new, :create]
+  before_action :must_own_work, only: [:edit, :update, :destroy]
 
   def root
     @albums = Work.best_albums
@@ -98,5 +99,19 @@ class WorksController < ApplicationController
     @work = Work.find_by(id: params[:id])
     return render_404 unless @work
     @media_category = @work.category.downcase.pluralize
+  end
+
+  def must_own_work
+    find_user
+    # @login_user = User.find_by(id: session[:user_id])
+    @work = Work.find_by(id: params[:id])
+
+    if @work.nil?
+      flash[:result_text] = "The work cannot be found"
+      redirect_to works_path
+    elsif @login_user.nil? || @login_user != @work.user
+      flash[:result_text] = "You do not have permission to access this page"
+      redirect_to root_path
+    end
   end
 end
