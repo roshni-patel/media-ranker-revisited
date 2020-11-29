@@ -72,6 +72,8 @@ describe WorksController do
 
   describe "create" do
     it "creates a work with valid data for a real category" do
+      perform_login(users(:dan))
+
       new_work = { work: { title: "Dirty Computer", category: "album" } }
 
       expect {
@@ -79,9 +81,12 @@ describe WorksController do
       }.must_change "Work.count", 1
 
       new_work_id = Work.find_by(title: "Dirty Computer").id
+      # new_work = Work.find_by(title: "Dirty Computer")
 
       must_respond_with :redirect
       must_redirect_to work_path(new_work_id)
+      # must_redirect_to work_path(new_work.id)
+      # expect(new_work.user_id).must_equal logged_in_user.id
     end
 
     it "renders bad_request and does not update the DB for bogus data" do
@@ -133,10 +138,32 @@ describe WorksController do
   end
 
   describe "edit" do
-    it "succeeds for an extant work ID" do
+    it "succeeds for an extant work ID if the user is logged in and owns that work" do
+      perform_login(users(:dan))
+      existing_work.user = users(:dan)
+      existing_work.save
+
       get edit_work_path(existing_work.id)
 
       must_respond_with :success
+    end
+
+    it "redirects for an extant work ID if the user is logged in but does not own that work" do
+      perform_login(users(:dan))
+
+      get edit_work_path(existing_work.id)
+
+      must_respond_with :redirect
+      must_redirect_to work_path
+      expect(flash[:result_text]).must_equal "You do not have permission to access this page"
+  end
+
+    it "redirects if the user is not logged in" do
+      get edit_work_path(existing_work.id)
+
+      must_respond_with :redirect
+      must_redirect_to work_path
+      expect(flash[:result_text]).must_equal "You do not have permission to access this page"
     end
 
     it "renders 404 not_found for a bogus work ID" do
@@ -150,7 +177,11 @@ describe WorksController do
   end
 
   describe "update" do
-    it "succeeds for valid data and an extant work ID" do
+    it "succeeds for valid data and an extant work ID if the user is logged in and they own that work" do
+      existing_work.user = users(:dan)
+      existing_work.save
+      perform_login(users(:dan))
+
       updates = { work: { title: "Dirty Computer" } }
 
       expect {
@@ -158,12 +189,28 @@ describe WorksController do
       }.wont_change "Work.count"
       updated_work = Work.find_by(id: existing_work.id)
 
-      expect(updated_work.title).must_equal "Dirty Computer"
+      expect(updated_work.reload.title).must_equal "Dirty Computer"
+      must_respond_with :redirect
+      must_redirect_to work_path(existing_work.id)
+    end
+
+    it "does not update a work if the user is logged in but does not own that work" do #added
+      perform_login(users(:dan))
+
+      updates = { work: { title: "Dirty Computer" } }
+
+      expect {
+        put work_path(existing_work), params: updates
+      }.wont_change "Work.count"
+      updated_work = Work.find_by(id: existing_work.id)
+
+      expect(updated_work.title).must_equal "Old Title"
       must_respond_with :redirect
       must_redirect_to work_path(existing_work.id)
     end
 
     it "renders bad_request for bogus data" do
+      # logged_in_user = perform_login(users(:dan))
       updates = { work: { title: nil } }
 
       expect {
@@ -172,7 +219,8 @@ describe WorksController do
 
       work = Work.find_by(id: existing_work.id)
 
-      must_respond_with :not_found
+      # must_respond_with :not_found
+      must_respond_with :redirect
     end
 
     it "renders 404 not_found for a bogus work ID" do
@@ -186,13 +234,38 @@ describe WorksController do
   end
 
   describe "destroy" do
-    it "succeeds for an extant work ID" do
+    it "succeeds for an extant work ID if the user is logged in and they own that work" do
+      existing_work.user = users(:dan)
+      existing_work.save
+
+      perform_login(users(:dan))
+
       expect {
         delete work_path(existing_work.id)
       }.must_change "Work.count", -1
 
       must_respond_with :redirect
       must_redirect_to root_path
+    end
+
+    it "does not delete a work if the user is logged out" do #added
+      expect {
+        delete work_path(existing_work.id)
+      }.wont_change "Work.count"
+
+      must_respond_with :redirect
+      must_redirect_to work_path
+    end
+
+    it "does not delete a work if the user is logged in but they do not own the work" do #added
+      perform_login(users(:dan))
+
+      expect {
+        delete work_path(existing_work.id)
+      }.wont_change "Work.count"
+
+      must_respond_with :redirect
+      must_redirect_to work_path
     end
 
     it "renders 404 not_found and does not update the DB for a bogus work ID" do

@@ -26,6 +26,7 @@ class WorksController < ApplicationController
   def create
     @work = Work.new(media_params)
     @media_category = @work.category
+
     if @work.save
       flash[:status] = :success
       flash[:result_text] = "Successfully created #{@media_category.singularize} #{@work.id}"
@@ -103,7 +104,6 @@ class WorksController < ApplicationController
 
   def must_own_work
     find_user
-    # @login_user = User.find_by(id: session[:user_id])
     @work = Work.find_by(id: params[:id])
 
     if @work.nil?
@@ -111,7 +111,7 @@ class WorksController < ApplicationController
       redirect_to works_path
     elsif @login_user.nil? || @login_user != @work.user
       flash[:result_text] = "You do not have permission to access this page"
-      redirect_to root_path
+      redirect_to work_path
     end
   end
 end
