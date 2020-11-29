@@ -39,11 +39,6 @@ describe UsersController do
 
       # Option 2
       must_redirect_to root_path
-      # expect(flash[:error]).must_equal ["Could not create new user account username: [\"can't be blank\"]"]
-      # p user.username.errors.messages
-      # p user.errors.messages
-
-      # expect(flash[:error]).must_equal "Could not create new user account: #{user.errors.messages}"
       expect(flash[:error]).must_equal "Could not create new user account: {:username=>[\"can't be blank\"]}"
       expect(session[:user_id]).must_be_nil
     end
