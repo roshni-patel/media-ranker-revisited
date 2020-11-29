@@ -71,7 +71,7 @@ describe WorksController do
   end
 
   describe "create" do
-    it "creates a work with valid data for a real category" do
+    it "creates a work with valid data for a real category when the user is logged in" do
       perform_login(users(:dan))
 
       new_work = { work: { title: "Dirty Computer", category: "album" } }
@@ -80,13 +80,11 @@ describe WorksController do
         post works_path, params: new_work
       }.must_change "Work.count", 1
 
+
       new_work_id = Work.find_by(title: "Dirty Computer").id
-      # new_work = Work.find_by(title: "Dirty Computer")
 
       must_respond_with :redirect
       must_redirect_to work_path(new_work_id)
-      # must_redirect_to work_path(new_work.id)
-      # expect(new_work.user_id).must_equal logged_in_user.id
     end
 
     it "renders bad_request and does not update the DB for bogus data" do
@@ -194,7 +192,7 @@ describe WorksController do
       must_redirect_to work_path(existing_work.id)
     end
 
-    it "does not update a work if the user is logged in but does not own that work" do #added
+    it "redirects and does not update a work if the user is logged in but does not own that work" do
       perform_login(users(:dan))
 
       updates = { work: { title: "Dirty Computer" } }
@@ -209,8 +207,20 @@ describe WorksController do
       must_redirect_to work_path(existing_work.id)
     end
 
-    it "renders bad_request for bogus data" do
-      # logged_in_user = perform_login(users(:dan))
+    it "redirects and does not update a work if the user is not logged in" do
+    updates = { work: { title: "Dirty Computer" } }
+
+    expect {
+      put work_path(existing_work), params: updates
+    }.wont_change "Work.count"
+    updated_work = Work.find_by(id: existing_work.id)
+
+    expect(updated_work.title).must_equal "Old Title"
+    must_respond_with :redirect
+    must_redirect_to work_path(existing_work.id)
+    end
+
+    it "redirects for bogus data" do
       updates = { work: { title: nil } }
 
       expect {
@@ -219,7 +229,6 @@ describe WorksController do
 
       work = Work.find_by(id: existing_work.id)
 
-      # must_respond_with :not_found
       must_respond_with :redirect
     end
 
@@ -248,7 +257,7 @@ describe WorksController do
       must_redirect_to root_path
     end
 
-    it "does not delete a work if the user is logged out" do #added
+    it "redirects and does not delete a work if the user is logged out" do
       expect {
         delete work_path(existing_work.id)
       }.wont_change "Work.count"
@@ -257,7 +266,7 @@ describe WorksController do
       must_redirect_to work_path
     end
 
-    it "does not delete a work if the user is logged in but they do not own the work" do #added
+    it "redirects and does not delete a work if the user is logged in but they do not own the work" do
       perform_login(users(:dan))
 
       expect {
