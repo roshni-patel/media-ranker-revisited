@@ -1,8 +1,52 @@
 require "test_helper"
 
 describe UsersController do
+  describe "index" do
+    it "redirects to the homepage if the user is not logged in" do
+      get users_path
+
+      must_respond_with :redirect
+      must_redirect_to root_path
+      expect(flash[:result_text]).must_equal "You must log in to do that"
+    end
+
+    it "responds with success when the user is logged in" do
+      perform_login(users(:dan))
+
+      get users_path
+
+      must_respond_with :success
+    end
+  end
+
+  describe "show" do
+    it "redirects to the homepage if the user is not logged in" do
+      get user_path(users(:dan).id)
+
+      must_respond_with :redirect
+      must_redirect_to root_path
+      expect(flash[:result_text]).must_equal "You must log in to do that"
+    end
+
+    it "responds with success when the user is logged in" do
+      perform_login(users(:dan))
+
+      get user_path(users(:kari).id)
+
+      must_respond_with :success
+    end
+
+    it "responds with 404 for an invalid user id" do
+      perform_login(users(:dan))
+
+      get user_path(-1)
+
+      must_respond_with :not_found
+    end
+  end
+
   # Tests written for Oauth.
-  describe "auth_callback" do
+  describe "auth_callback (create)" do
     it "logs in an existing user and redirects to the root path" do
       user = users(:dan)
 
@@ -44,7 +88,7 @@ describe UsersController do
     end
   end
 
-  describe "logout" do
+  describe "logout (destroy)" do
     it "will log out a logged in user" do
       user = users(:dan)
       perform_login(user)

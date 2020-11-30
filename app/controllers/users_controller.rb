@@ -1,9 +1,19 @@
 class UsersController < ApplicationController
   def index
+    if @login_user.nil?
+      flash[:result_text] = "You must log in to do that"
+      return redirect_to root_path
+    end
+
     @users = User.all
   end
 
   def show
+    if @login_user.nil?
+      flash[:result_text] = "You must log in to do that"
+      return redirect_to root_path
+    end
+    
     @user = User.find_by(id: params[:id])
     render_404 unless @user
   end
